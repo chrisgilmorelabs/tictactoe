@@ -1,25 +1,40 @@
--- Core tables will be defined based on specific requirements
--- All tables should include:
--- - id (uuid, primary key, default gen_random_uuid())
--- - created_at (timestamp with time zone, default now())
--- - updated_at (timestamp with time zone, default now())
-
--- Example base structure:
-CREATE TABLE IF NOT EXISTS public.users (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    email text UNIQUE NOT NULL,
-    full_name text,
-    avatar_url text,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
-);
-
--- Enable RLS
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-
--- RLS Policies
-CREATE POLICY "Users can view own profile" ON public.users
-    FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "Users can update own profile" ON public.users
-    FOR UPDATE USING (auth.uid() = id);
+project-root/
+├── app/                          # Next.js App Router
+│   ├── (auth)/                   # Auth route group
+│   │   ├── login/
+│   │   └── register/
+│   ├── (dashboard)/              # Protected route group
+│   │   ├── dashboard/
+│   │   └── profile/
+│   ├── api/                      # API Routes
+│   │   ├── auth/
+│   │   ├── users/
+│   │   └── health/
+│   ├── globals.css               # Global styles & design tokens
+│   ├── layout.tsx                # Root layout
+│   ├── loading.tsx               # Global loading UI
+│   ├── error.tsx                 # Global error UI
+│   └── not-found.tsx             # 404 page
+├── components/                   # Reusable UI components
+│   ├── ui/                       # shadcn/ui components
+│   ├── auth/                     # Auth-related components
+│   ├── common/                   # Shared components
+│   └── forms/                    # Form components
+├── lib/                          # Utility libraries
+│   ├── supabase/                 # Supabase configuration
+│   │   ├── client.ts             # Client-side Supabase
+│   │   ├── server.ts             # Server-side Supabase
+│   │   └── middleware.ts         # Auth middleware
+│   ├── utils.ts                  # General utilities
+│   ├── validations.ts            # Zod schemas
+│   └── constants.ts              # App constants
+├── types/                        # TypeScript type definitions
+│   ├── database.ts               # Supabase generated types
+│   ├── auth.ts                   # Auth-related types
+│   └── api.ts                    # API response types
+├── hooks/                        # Custom React hooks
+├── middleware.ts                 # Next.js middleware for auth
+├── supabase/                     # Database migrations & seeds
+│   ├── migrations/
+│   └── seed.sql
+└── tailwind.config.js            # Tailwind configuration
