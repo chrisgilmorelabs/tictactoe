@@ -1,7 +1,6 @@
 -- Users table (managed by Supabase Auth)
--- Additional user profile data
-CREATE TABLE profiles (
-  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+CREATE TABLE public.profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
   avatar_url TEXT,
@@ -9,14 +8,30 @@ CREATE TABLE profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enable RLS
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+-- Example application table
+CREATE TABLE public.posts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT,
+  author_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  published BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- RLS Policies
-CREATE POLICY "Users can view their own profile" 
-  ON profiles FOR SELECT 
-  USING (auth.uid() = id);
+-- Row Level Security (RLS) Policies
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can update their own profile" 
-  ON profiles FOR UPDATE 
-  USING (auth.uid() = id);
+-- Example RLS policies
+CREATE POLICY "Users can view their own profile" ON public.profiles
+  FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update their own profile" ON public.profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Users can view published posts" ON public.posts
+  FOR SELECT USING (published = true OR author_id = auth.uid());
+
+CREATE POLICY "Users can create their own posts" ON public.posts
+  FOR INSERT WITH CHECK (author_id = auth.uid());
