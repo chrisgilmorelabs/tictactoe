@@ -1,32 +1,20 @@
-├── app/
-│   ├── (auth)/              # Auth route group
-│   │   ├── login/
-│   │   └── register/
-│   ├── (dashboard)/         # Protected route group
-│   │   ├── dashboard/
-│   │   └── profile/
-│   ├── api/                 # API routes
-│   │   ├── auth/
-│   │   └── users/
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
-├── components/
-│   ├── ui/                  # shadcn/ui components
-│   ├── forms/              # Form components
-│   ├── layouts/            # Layout components
-│   └── common/             # Reusable components
-├── lib/
-│   ├── supabase/           # Supabase client & types
-│   ├── validations/        # Zod schemas
-│   ├── utils.ts           # Utility functions
-│   └── constants.ts       # App constants
-├── types/
-│   ├── database.ts        # Database types
-│   ├── auth.ts           # Auth types
-│   └── api.ts            # API types
-├── hooks/                 # Custom React hooks
-├── middleware.ts          # Next.js middleware
-└── supabase/
-    ├── migrations/        # Database migrations
-    └── seed.sql          # Initial data
+-- Users table (handled by Supabase Auth)
+-- profiles table extends auth.users
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT NOT NULL,
+  full_name TEXT,
+  avatar_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can view own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
